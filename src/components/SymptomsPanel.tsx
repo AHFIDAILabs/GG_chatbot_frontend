@@ -141,7 +141,7 @@ export default function SymptomsPanel({
             cursor: "pointer",
           }}
         >
-          Save Today's Log
+          Save Your Log
         </button>
       </div>
 

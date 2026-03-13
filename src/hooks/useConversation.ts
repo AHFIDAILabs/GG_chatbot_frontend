@@ -54,7 +54,7 @@ export function useConversations(limit = 20): UseConversationsReturn {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, tick]);
+  }, [page, limit]); // tick triggers via page reset
 
   useEffect(() => { fetch(); }, [fetch]);
 
