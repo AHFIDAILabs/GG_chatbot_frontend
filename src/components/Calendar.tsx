@@ -13,16 +13,16 @@ const MONTHS     = [
   'July','August','September','October','November','December',
 ];
 
-function getDayClass(
-  key:      string,
-  isToday:  boolean,
-  sets:     CalendarDateSets,
+function getDayStyle(
+  key:     string,
+  isToday: boolean,
+  sets:    CalendarDateSets,
 ): React.CSSProperties {
-  if (sets.periodDates.has(key))    return { background: 'rgba(239,68,68,0.18)',    border: '1px solid rgba(239,68,68,0.32)',    color: '#fca5a5' };
-  if (sets.ovulationDates.has(key)) return { background: 'rgba(167,139,250,0.22)', border: '1px solid rgba(167,139,250,0.4)',   color: '#c4b5fd', fontWeight: 700 };
-  if (sets.fertileDates.has(key))   return { background: 'rgba(167,139,250,0.1)',  border: '1px solid rgba(167,139,250,0.2)',   color: '#c4b5fd' };
-  if (sets.predictedDates.has(key)) return { background: 'rgba(251,191,36,0.09)',  border: '1px solid rgba(251,191,36,0.22)',   color: '#fbbf24' };
-  if (isToday)                      return { background: 'rgba(74,222,128,0.14)',  border: '1px solid rgba(74,222,128,0.38)',   color: '#4ade80', fontWeight: 700 };
+  if (sets.periodDates.has(key))    return { background: 'rgba(239,68,68,0.18)',   border: '1px solid rgba(239,68,68,0.32)',   color: '#fca5a5' };
+  // if (sets.ovulationDates.has(key)) return { ... };   // Ovulation — hidden for now
+  // if (sets.fertileDates.has(key))   return { ... };   // Fertile window — hidden for now
+  if (sets.predictedDates.has(key)) return { background: 'rgba(251,191,36,0.09)', border: '1px solid rgba(251,191,36,0.22)', color: '#fbbf24' };
+  if (isToday)                      return { background: 'rgba(74,222,128,0.14)', border: '1px solid rgba(74,222,128,0.38)', color: '#4ade80', fontWeight: 700 };
   return { background: 'rgba(255,255,255,0.03)', border: '1px solid transparent', color: 'rgba(255,255,255,0.45)' };
 }
 
@@ -44,7 +44,6 @@ export default function Calendar({ dateSets }: CalendarProps) {
     else setMonth(m => m + 1);
   };
 
-  // Build cells: empty + day numbers
   const cells: (number | null)[] = [
     ...Array(firstDay).fill(null),
     ...Array.from({ length: daysCount }, (_, i) => i + 1),
@@ -61,19 +60,13 @@ export default function Calendar({ dateSets }: CalendarProps) {
           onClick={prevMonth}
           className="px-[9px] py-[3px] rounded-[6px] text-[13px]"
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.55)' }}
-        >
-          ‹
-        </button>
-        <span className="text-[13.5px] font-semibold text-white">
-          {MONTHS[month]} {year}
-        </span>
+        >‹</button>
+        <span className="text-[13.5px] font-semibold text-white">{MONTHS[month]} {year}</span>
         <button
           onClick={nextMonth}
           className="px-[9px] py-[3px] rounded-[6px] text-[13px]"
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', color: 'rgba(255,255,255,0.55)' }}
-        >
-          ›
-        </button>
+        >›</button>
       </div>
 
       {/* Grid */}
@@ -87,7 +80,7 @@ export default function Calendar({ dateSets }: CalendarProps) {
           if (!day) return <div key={`e-${i}`} />;
           const key     = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const isToday = key === today;
-          const style   = getDayClass(key, isToday, dateSets);
+          const style   = getDayStyle(key, isToday, dateSets);
           return (
             <div
               key={key}
@@ -100,19 +93,15 @@ export default function Calendar({ dateSets }: CalendarProps) {
         })}
       </div>
 
-      {/* Legend */}
+      {/* Legend — fertile window removed */}
       <div className="flex gap-3 mt-3 flex-wrap">
         {[
-          { color: 'rgba(239,68,68,0.4)',    border: 'rgba(239,68,68,0.6)',    label: 'Period' },
-          { color: 'rgba(251,191,36,0.2)',   border: 'rgba(251,191,36,0.4)',   label: 'Predicted' },
-          { color: 'rgba(167,139,250,0.2)',  border: 'rgba(167,139,250,0.4)',  label: 'Fertile window' },
-          { color: 'rgba(74,222,128,0.2)',   border: 'rgba(74,222,128,0.4)',   label: 'Today' },
+          { color: 'rgba(239,68,68,0.4)',  border: 'rgba(239,68,68,0.6)',  label: 'Period'    },
+          { color: 'rgba(251,191,36,0.2)', border: 'rgba(251,191,36,0.4)', label: 'Predicted' },
+          { color: 'rgba(74,222,128,0.2)', border: 'rgba(74,222,128,0.4)', label: 'Today'     },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1 text-[10.5px]" style={{ color: 'rgba(255,255,255,0.38)' }}>
-            <div
-              className="w-[9px] h-[9px] rounded-[2px] shrink-0"
-              style={{ background: l.color, border: `1px solid ${l.border}` }}
-            />
+            <div className="w-[9px] h-[9px] rounded-[2px] shrink-0" style={{ background: l.color, border: `1px solid ${l.border}` }} />
             {l.label}
           </div>
         ))}
