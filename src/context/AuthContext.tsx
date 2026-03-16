@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -7,121 +7,114 @@ import {
   useEffect,
   useCallback,
   ReactNode,
-} from "react";
-import { authService } from "../services";
-import { connectFacilitator, disconnectSocket } from "../lib/socket";
-import { User, RegisterBody, LoginBody, UpdateMeBody } from "../types";
-
-// ─────────────────────────────────────────────
-// Context shape
-// ─────────────────────────────────────────────
+} from 'react';
+import { authService }                         from '../services';
+import { connectFacilitator, disconnectSocket } from '../lib/socket';
+import { User, RegisterBody, LoginBody, UpdateMeBody } from '../types';
 
 interface AuthContextValue {
-  user: User | null;
-  loading: boolean; // true while fetching /auth/me on mount
-  error: string | null;
-  isAuth: boolean;
+  user:          User | null;
+  loading:       boolean;
+  error:         string | null;
+  isAuth:        boolean;
+  isGuest:       boolean;   // true when user explicitly chose "continue without signing in"
   isFacilitator: boolean;
 
-  register: (body: RegisterBody) => Promise<void>;
-  login: (body: LoginBody) => Promise<void>;
-  logout: () => Promise<void>;
-  updateMe: (body: UpdateMeBody) => Promise<void>;
-  clearError: () => void;
+  register:      (body: RegisterBody) => Promise<void>;
+  login:         (body: LoginBody)    => Promise<void>;
+  logout:        ()                   => Promise<void>;
+  updateMe:      (body: UpdateMeBody) => Promise<void>;
+  continueAsGuest: ()                 => void;
+  clearError:    ()                   => void;
 }
-
-// ─────────────────────────────────────────────
-// Context
-// ─────────────────────────────────────────────
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// ─────────────────────────────────────────────
-// Provider
-// ─────────────────────────────────────────────
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user,    setUser]    = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
+  // isGuest: persisted in sessionStorage so refresh keeps guest mode
+  const [isGuest, setIsGuest] = useState(false);
 
-  // ── Restore session on mount ───────────────
-  // Calls /auth/me — if the httpOnly access_token
-  // cookie is valid, we get the user back.
-  // If it returns 401 the axios interceptor will
-  // attempt a silent refresh before giving up.
   useEffect(() => {
+    // Restore guest flag from sessionStorage
+    const savedGuest = sessionStorage.getItem('ggcl_guest') === 'true';
+    if (savedGuest) {
+      setIsGuest(true);
+      setLoading(false);
+      return;
+    }
+
     authService
       .getMe()
       .then(({ user }) => {
         setUser(user);
-        // If facilitator — connect socket for safeguarding alerts
-        if (user.role === "facilitator") connectFacilitator();
+        if (user.role === 'facilitator') connectFacilitator();
       })
       .catch(() => {
-        // No valid session — start as guest
         setUser(null);
+        // Don't set guest here — let the layout redirect to /login
       })
       .finally(() => setLoading(false));
   }, []);
 
-  // ── Register ──────────────────────────────
   const register = useCallback(async (body: RegisterBody) => {
     setError(null);
     try {
       const { user } = await authService.register(body);
       setUser(user);
-      if (user.role === "facilitator") connectFacilitator();
+      setIsGuest(false);
+      sessionStorage.removeItem('ggcl_guest');
+      if (user.role === 'facilitator') connectFacilitator();
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ??
-        "Registration failed. Please try again.";
-      setError(message);
+      setError(err?.response?.data?.message ?? 'Registration failed. Please try again.');
       throw err;
     }
   }, []);
 
-  // ── Login ─────────────────────────────────
   const login = useCallback(async (body: LoginBody) => {
     setError(null);
     try {
       const { user } = await authService.login(body);
       setUser(user);
-      if (user.role === "facilitator") connectFacilitator();
+      setIsGuest(false);
+      sessionStorage.removeItem('ggcl_guest');
+      if (user.role === 'facilitator') connectFacilitator();
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ??
-        "Login failed. Please check your credentials.";
-      setError(message);
+      setError(err?.response?.data?.message ?? 'Login failed. Please check your credentials.');
       throw err;
     }
   }, []);
 
-  // ── Logout ────────────────────────────────
   const logout = useCallback(async () => {
     setError(null);
     try {
       await authService.logout();
     } catch {
-      // Even if logout API fails, clear local state
+      // clear local state regardless
     } finally {
       disconnectSocket();
       setUser(null);
+      setIsGuest(false);
+      sessionStorage.removeItem('ggcl_guest');
     }
   }, []);
 
-  // ── Update profile ────────────────────────
   const updateMe = useCallback(async (body: UpdateMeBody) => {
     setError(null);
     try {
       const { user } = await authService.updateMe(body);
       setUser(user);
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ?? "Update failed. Please try again.";
-      setError(message);
+      setError(err?.response?.data?.message ?? 'Update failed. Please try again.');
       throw err;
     }
+  }, []);
+
+  const continueAsGuest = useCallback(() => {
+    sessionStorage.setItem('ggcl_guest', 'true');
+    setIsGuest(true);
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
@@ -132,12 +125,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         error,
-        isAuth: !!user,
-        isFacilitator: user?.role === "facilitator",
+        isAuth:        !!user,
+        isGuest,
+        isFacilitator: user?.role === 'facilitator',
         register,
         login,
         logout,
         updateMe,
+        continueAsGuest,
         clearError,
       }}
     >
@@ -146,13 +141,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Hook
-// ─────────────────────────────────────────────
-
 export function useAuthContext(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx)
-    throw new Error("useAuthContext must be used inside <AuthProvider>");
+  if (!ctx) throw new Error('useAuthContext must be used inside <AuthProvider>');
   return ctx;
 }

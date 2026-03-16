@@ -1,5 +1,6 @@
 'use client';
 
+import Image             from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth }                from '../hooks';
 
@@ -47,9 +48,11 @@ export default function Sidebar({ collapsed, onChipClick, onSOSClick }: SidebarP
         <div className="px-4 pb-4 mb-3" style={{ borderBottom: '1px solid rgba(74,222,128,0.1)' }}>
           <div className="flex items-center gap-2 mb-2">
             <div
-              className="w-[42px] h-[42px] rounded-full flex items-center justify-center font-black text-[19px] shrink-0"
-              style={{ background: 'linear-gradient(135deg,#4ade80,#16a34a)', color: '#09160d', boxShadow: '0 0 18px rgba(74,222,128,0.3)' }}
-            >A</div>
+              className="w-[42px] h-[42px] rounded-full shrink-0 overflow-hidden"
+              style={{ boxShadow: '0 0 18px rgba(74,222,128,0.3)' }}
+            >
+              <Image src="/Green Girl.png" alt="Amara" width={42} height={42} className="w-full h-full object-cover" priority />
+            </div>
             <div>
               <div className="font-bold text-[16px] text-white">Amara</div>
               <div className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>by GGCL Academy</div>
