@@ -10,8 +10,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading,  setLoading]  = useState(false);
-  const { login, error, clearError, continueAsGuest } = useAuth();
-  const router                                         = useRouter();
+  const { login, error, clearError } = useAuth();
+  const router                       = useRouter();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -21,15 +21,10 @@ export default function LoginPage() {
       await login({ email, password });
       router.push('/chat');
     } catch {
-      // error already set in context
+      // error set in context
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGuest = () => {
-    continueAsGuest();
-    router.push('/chat');
   };
 
   const inputStyle: React.CSSProperties = {
@@ -61,7 +56,7 @@ export default function LoginPage() {
 
           <div className="font-bold text-[18px] sm:text-[20px] text-white mb-1">Welcome back</div>
           <div className="text-[13px] mb-5 sm:mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Sign in to save your progress and chat history
+            Sign in to access your saved chats and progress
           </div>
 
           {error && (
@@ -113,9 +108,9 @@ export default function LoginPage() {
             <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
           </div>
 
-          {/* Guest button — prominent, not just a tiny link */}
+          {/* Back to chat — no account needed */}
           <button
-            onClick={handleGuest}
+            onClick={() => router.push('/chat')}
             className="w-full py-[10px] rounded-[9px] text-[13.5px] font-semibold border transition-all duration-150"
             style={{ background: 'transparent', borderColor: 'rgba(255,255,255,0.12)',
               color: 'rgba(255,255,255,0.55)', fontFamily: 'DM Sans, sans-serif', cursor: 'pointer' }}
@@ -128,10 +123,10 @@ export default function LoginPage() {
               (e.currentTarget as HTMLButtonElement).style.color       = 'rgba(255,255,255,0.55)';
             }}
           >
-            Continue without an account
+            Continue chatting without an account
           </button>
           <p className="text-center text-[10.5px] mt-2" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            Chat history won&apos;t be saved in guest mode
+            Chat history won&apos;t be saved
           </p>
         </div>
       </div>

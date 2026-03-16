@@ -1,7 +1,8 @@
 'use client';
 
-import Image            from 'next/image';
-import { useRouter }    from 'next/navigation';
+import Image             from 'next/image';
+import { useRouter }     from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 interface HeaderProps {
   sidebarCollapsed: boolean;
@@ -9,7 +10,7 @@ interface HeaderProps {
   onSOSClick:       () => void;
   title?:           string;
   subtitle?:        string;
-  showBack?:        boolean;  // optional — defaults to true when history exists
+  showBack?:        boolean;
 }
 
 export default function Header({
@@ -22,10 +23,16 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter();
 
-  const handleBack = () => router.back();
+  // Evaluate history only on the client to avoid SSR/client mismatch
+  const [canGoBack, setCanGoBack] = useState(false);
 
-  // Show back arrow if explicitly set, or if browser has history to go back to
-  const canGoBack = showBack ?? (typeof window !== 'undefined' && window.history.length > 1);
+  useEffect(() => {
+    if (showBack !== undefined) {
+      setCanGoBack(showBack);
+    } else {
+      setCanGoBack(window.history.length > 1);
+    }
+  }, [showBack]);
 
   return (
     <div
@@ -35,10 +42,10 @@ export default function Header({
         borderBottom: '1px solid rgba(74,222,128,0.09)',
       }}
     >
-      {/* Back arrow */}
+      {/* Back arrow — client-only */}
       {canGoBack && (
         <button
-          onClick={handleBack}
+          onClick={() => router.back()}
           className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center shrink-0 transition-colors"
           style={{
             background: 'rgba(255,255,255,0.05)',

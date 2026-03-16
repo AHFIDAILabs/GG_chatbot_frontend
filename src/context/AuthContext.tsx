@@ -17,15 +17,13 @@ interface AuthContextValue {
   loading:       boolean;
   error:         string | null;
   isAuth:        boolean;
-  isGuest:       boolean;   // true when user explicitly chose "continue without signing in"
   isFacilitator: boolean;
 
-  register:      (body: RegisterBody) => Promise<void>;
-  login:         (body: LoginBody)    => Promise<void>;
-  logout:        ()                   => Promise<void>;
-  updateMe:      (body: UpdateMeBody) => Promise<void>;
-  continueAsGuest: ()                 => void;
-  clearError:    ()                   => void;
+  register:  (body: RegisterBody) => Promise<void>;
+  login:     (body: LoginBody)    => Promise<void>;
+  logout:    ()                   => Promise<void>;
+  updateMe:  (body: UpdateMeBody) => Promise<void>;
+  clearError: ()                  => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -34,28 +32,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user,    setUser]    = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
-  // isGuest: persisted in sessionStorage so refresh keeps guest mode
-  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
-    // Restore guest flag from sessionStorage
-    const savedGuest = sessionStorage.getItem('ggcl_guest') === 'true';
-    if (savedGuest) {
-      setIsGuest(true);
-      setLoading(false);
-      return;
-    }
-
+    // Silently restore session — if no cookie, user stays null (guest)
     authService
       .getMe()
       .then(({ user }) => {
         setUser(user);
         if (user.role === 'facilitator') connectFacilitator();
       })
-      .catch(() => {
-        setUser(null);
-        // Don't set guest here — let the layout redirect to /login
-      })
+      .catch(() => setUser(null))   // no session = unauthenticated, that's fine
       .finally(() => setLoading(false));
   }, []);
 
@@ -64,8 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { user } = await authService.register(body);
       setUser(user);
-      setIsGuest(false);
-      sessionStorage.removeItem('ggcl_guest');
       if (user.role === 'facilitator') connectFacilitator();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Registration failed. Please try again.');
@@ -78,8 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { user } = await authService.login(body);
       setUser(user);
-      setIsGuest(false);
-      sessionStorage.removeItem('ggcl_guest');
       if (user.role === 'facilitator') connectFacilitator();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Login failed. Please check your credentials.');
@@ -96,8 +78,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       disconnectSocket();
       setUser(null);
-      setIsGuest(false);
-      sessionStorage.removeItem('ggcl_guest');
     }
   }, []);
 
@@ -112,11 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const continueAsGuest = useCallback(() => {
-    sessionStorage.setItem('ggcl_guest', 'true');
-    setIsGuest(true);
-  }, []);
-
   const clearError = useCallback(() => setError(null), []);
 
   return (
@@ -126,13 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         isAuth:        !!user,
-        isGuest,
         isFacilitator: user?.role === 'facilitator',
         register,
         login,
         logout,
         updateMe,
-        continueAsGuest,
         clearError,
       }}
     >
