@@ -1,6 +1,7 @@
 'use client';
 
-import Image from 'next/image';
+import Image            from 'next/image';
+import { useRouter }    from 'next/navigation';
 
 interface HeaderProps {
   sidebarCollapsed: boolean;
@@ -8,6 +9,7 @@ interface HeaderProps {
   onSOSClick:       () => void;
   title?:           string;
   subtitle?:        string;
+  showBack?:        boolean;  // optional — defaults to true when history exists
 }
 
 export default function Header({
@@ -16,7 +18,15 @@ export default function Header({
   onSOSClick,
   title    = 'Amara',
   subtitle = 'Period health companion · GGCL Academy',
+  showBack,
 }: HeaderProps) {
+  const router = useRouter();
+
+  const handleBack = () => router.back();
+
+  // Show back arrow if explicitly set, or if browser has history to go back to
+  const canGoBack = showBack ?? (typeof window !== 'undefined' && window.history.length > 1);
+
   return (
     <div
       className="flex items-center gap-3 px-[18px] py-3 flex-shrink-0"
@@ -25,6 +35,23 @@ export default function Header({
         borderBottom: '1px solid rgba(74,222,128,0.09)',
       }}
     >
+      {/* Back arrow */}
+      {canGoBack && (
+        <button
+          onClick={handleBack}
+          className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center shrink-0 transition-colors"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border:     '1px solid rgba(255,255,255,0.09)',
+            color:      'rgba(255,255,255,0.55)',
+            fontSize:   15,
+          }}
+          title="Go back"
+        >
+          ←
+        </button>
+      )}
+
       {/* Toggle sidebar */}
       <button
         onClick={onToggleSidebar}
