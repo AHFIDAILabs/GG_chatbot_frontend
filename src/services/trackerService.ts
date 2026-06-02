@@ -25,7 +25,7 @@ export async function fetchPeriodLogs(page = 1, limit = 12): Promise<PeriodLogsR
     `/tracker?page=${page}&limit=${limit}`,
   );
   const d = data.data;
-  return { ...d, logs: d.logs.map(normalise) };
+  return { ...d, logs: (d.logs as unknown[]).map(normalise) };
 }
 
 export async function logPeriod(
