@@ -125,7 +125,7 @@ export default function InvitePage() {
 
             <div className="font-bold text-[18px] mb-1" style={{ color: 'var(--txt-1)' }}>Create your facilitator account</div>
             <div className="text-[13px] mb-5" style={{ color: 'var(--txt-3)' }}>
-              You'll get a group code to share with your girls after registration.
+              You&apos;ll get a group code to share with your girls after registration.
             </div>
 
             {formError && (

@@ -9,8 +9,7 @@ interface PeriodLogsResponse {
 }
 
 // Normalise backend doc (_id, startDate) → local shape (id, date)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalise(doc: any): PeriodLog {
+function normalise(doc: Record<string, unknown>): PeriodLog {
   return {
     id:       (doc._id ?? doc.id) as string,
     _id:      doc._id as string,

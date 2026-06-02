@@ -46,7 +46,7 @@ export default function ChatPage() {
       setMsgCount(assistantCount);
       localStorage.setItem(STORAGE_MSG_COUNT, String(assistantCount));
     }
-  }, [messages, hydrated]);
+  }, [messages, hydrated, msgCount]);
 
   // Auto-scroll
   useEffect(() => {
