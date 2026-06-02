@@ -54,8 +54,9 @@ export function getAvgCycleLength(logs: PeriodLog[]): number {
 }
 
 export function getAvgPeriodLength(logs: PeriodLog[]): number {
-  if (!logs.length) return 5;
-  return Math.round(logs.reduce((s, l) => s + l.duration, 0) / logs.length);
+  const withDur = logs.filter(l => l.duration != null);
+  if (!withDur.length) return 5;
+  return Math.round(withDur.reduce((s, l) => s + (l.duration ?? 5), 0) / withDur.length);
 }
 
 export function getCurrentPhase(logs: PeriodLog[]): CyclePhase {
@@ -130,7 +131,7 @@ export function getCalendarDateSets(logs: PeriodLog[]): CalendarDateSets {
     const start = new Date(log.date);
 
     // Actual period days
-    for (let d = 0; d < log.duration; d++) {
+    for (let d = 0; d < (log.duration ?? 5); d++) {
       const dd = new Date(start);
       dd.setDate(start.getDate() + d);
       periodDates.add(dd.toISOString().split('T')[0]);

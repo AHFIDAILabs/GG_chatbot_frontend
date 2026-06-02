@@ -3,6 +3,8 @@
 import Image             from 'next/image';
 import { useRouter }     from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useAuth }       from '../hooks';
+import ThemeToggle       from './ThemeToggle';
 
 interface HeaderProps {
   sidebarCollapsed: boolean;
@@ -22,6 +24,7 @@ export default function Header({
   showBack,
 }: HeaderProps) {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Evaluate history only on the client to avoid SSR/client mismatch
   const [canGoBack, setCanGoBack] = useState(false);
@@ -38,8 +41,8 @@ export default function Header({
     <div
       className="flex items-center gap-3 px-[18px] py-3 flex-shrink-0"
       style={{
-        background:   'rgba(9,22,13,0.94)',
-        borderBottom: '1px solid rgba(74,222,128,0.09)',
+        background:   'var(--bg)',
+        borderBottom: '1px solid var(--border)',
       }}
     >
       {/* Back arrow — client-only */}
@@ -48,9 +51,9 @@ export default function Header({
           onClick={() => router.back()}
           className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center shrink-0 transition-colors"
           style={{
-            background: 'rgba(255,255,255,0.05)',
-            border:     '1px solid rgba(255,255,255,0.09)',
-            color:      'rgba(255,255,255,0.55)',
+            background: 'var(--surface-input)',
+            border:     '1px solid var(--border-faint)',
+            color:      'var(--txt-2)',
             fontSize:   15,
           }}
           title="Go back"
@@ -64,9 +67,9 @@ export default function Header({
         onClick={onToggleSidebar}
         className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center text-[13px] shrink-0 transition-colors"
         style={{
-          background: 'rgba(255,255,255,0.05)',
-          border:     '1px solid rgba(255,255,255,0.09)',
-          color:      'rgba(255,255,255,0.55)',
+          background: 'var(--surface-input)',
+          border:     '1px solid var(--border-faint)',
+          color:      'var(--txt-2)',
         }}
       >
         ☰
@@ -89,23 +92,41 @@ export default function Header({
 
       {/* Title */}
       <div>
-        <div className="font-bold text-[14px] text-white">{title}</div>
+        <div className="font-bold text-[14px]" style={{ color: 'var(--txt-1)' }}>{title}</div>
         <div className="flex items-center gap-1 mt-[1px]">
-          <div className="w-[5px] h-[5px] rounded-full" style={{ background: '#4ade80' }} />
-          <span className="text-[10.5px]" style={{ color: 'rgba(255,255,255,0.32)' }}>
+          <div className="w-[5px] h-[5px] rounded-full" style={{ background: 'var(--accent)' }} />
+          <span className="text-[10.5px]" style={{ color: 'var(--txt-4)' }}>
             {subtitle}
           </span>
         </div>
       </div>
 
+      {/* Theme toggle */}
+      <ThemeToggle />
+
+      {/* Facilitator portal shortcut */}
+      {user?.role === 'facilitator' && (
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="ml-auto px-3 py-1 rounded-2xl text-[11.5px] border transition-colors"
+          style={{
+            background:  'var(--surface-hover)',
+            borderColor: 'var(--border)',
+            color:       'var(--accent)',
+          }}
+        >
+          🏫 Portal
+        </button>
+      )}
+
       {/* Safe space button */}
       <button
         onClick={onSOSClick}
-        className="ml-auto px-3 py-1 rounded-2xl text-[11.5px] border transition-colors"
+        className={`${user?.role === 'facilitator' ? '' : 'ml-auto'} px-3 py-1 rounded-2xl text-[11.5px] border transition-colors`}
         style={{
-          background:  'rgba(74,222,128,0.07)',
-          borderColor: 'rgba(74,222,128,0.16)',
-          color:       '#4ade80',
+          background:  'var(--surface-hover)',
+          borderColor: 'var(--border)',
+          color:       'var(--accent)',
         }}
       >
         🔒 Safe space

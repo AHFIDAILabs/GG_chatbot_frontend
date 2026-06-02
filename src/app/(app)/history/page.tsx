@@ -23,13 +23,13 @@ export default function HistoryPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div style={pageInnerStyle}>
-        <div className="text-[20px] font-bold text-white mb-1">Chat History</div>
-        <div className="text-[12.5px] mb-6" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        <div className="text-[20px] font-bold mb-1" style={{ color: 'var(--txt-1)' }}>Chat History</div>
+        <div className="text-[12.5px] mb-6" style={{ color: 'var(--txt-4)' }}>
           Your recent conversations with Amara
         </div>
 
         {loading && (
-          <div className="text-[13px] text-center py-10" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <div className="text-[13px] text-center py-10" style={{ color: 'var(--txt-4)' }}>
             Loading…
           </div>
         )}
@@ -37,7 +37,7 @@ export default function HistoryPage() {
         {error && (
           <div
             className="text-[12.5px] px-4 py-2 rounded-lg mb-4"
-            style={{ background: 'rgba(239,68,68,0.09)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}
+            style={{ background: 'var(--danger-bg)', border: '1px solid var(--danger-border)', color: 'var(--danger-txt)' }}
           >
             {error}
           </div>
@@ -48,7 +48,7 @@ export default function HistoryPage() {
             className="flex flex-col items-center justify-center gap-3 py-16 opacity-45"
           >
             <div className="text-[40px]">💬</div>
-            <p className="text-[13px] text-center" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <p className="text-[13px] text-center" style={{ color: 'var(--txt-3)' }}>
               No conversations yet.<br />Start chatting with Amara!
             </p>
           </div>
@@ -60,20 +60,20 @@ export default function HistoryPage() {
             onClick={() => handleOpen(item.id)}
             className="rounded-[11px] px-4 py-[14px] mb-[10px] cursor-pointer transition-all duration-200"
             style={{
-              background:  'rgba(13,30,17,0.8)',
-              border:      '1px solid rgba(74,222,128,0.1)',
+              background:  'var(--surface-raised)',
+              border:      '1px solid var(--border-faint)',
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(74,222,128,0.28)';
-              (e.currentTarget as HTMLDivElement).style.background  = 'rgba(13,30,17,0.98)';
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-strong)';
+              (e.currentTarget as HTMLDivElement).style.background  = 'var(--surface-hover)';
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(74,222,128,0.1)';
-              (e.currentTarget as HTMLDivElement).style.background  = 'rgba(13,30,17,0.8)';
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-faint)';
+              (e.currentTarget as HTMLDivElement).style.background  = 'var(--surface-raised)';
             }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10.5px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
+              <span className="text-[10.5px]" style={{ color: 'var(--txt-5)' }}>
                 {new Date(item.updatedAt).toLocaleDateString('en-GB', {
                   day: 'numeric', month: 'short', year: 'numeric',
                 })}
@@ -87,12 +87,12 @@ export default function HistoryPage() {
                 </span>
               )}
             </div>
-            <div className="text-[13.5px] font-semibold text-white mb-1">
+            <div className="text-[13.5px] font-semibold mb-1" style={{ color: 'var(--txt-1)' }}>
               {item.preview}
             </div>
             <div
               className="text-[12px] truncate"
-              style={{ color: 'rgba(255,255,255,0.4)' }}
+              style={{ color: 'var(--txt-3)' }}
             >
               {item.lastMessage}
             </div>

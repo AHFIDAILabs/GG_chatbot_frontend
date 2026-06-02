@@ -1,0 +1,26 @@
+{
+  "name": "Amara — GGCL Academy",
+  "short_name": "Amara",
+  "description": "Your safe AI learning companion from the Green Girls GGCL Academy",
+  "start_url": "/chat",
+  "display": "standalone",
+  "background_color": "#09160d",
+  "theme_color": "#4ade80",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/Green Girl.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Green Girl.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "health", "lifestyle"],
+  "lang": "en"
+}

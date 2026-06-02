@@ -17,8 +17,8 @@ export default function SOSModal({ show, onClose }: SOSModalProps) {
       <div
         className="relative max-w-[400px] w-full rounded-2xl p-[26px]"
         style={{
-          background: '#0b1d0f',
-          border:     '1px solid rgba(74,222,128,0.18)',
+          background: 'var(--surface)',
+          border:     '1px solid var(--border-input)',
           boxShadow:  '0 28px 70px rgba(0,0,0,0.65)',
         }}
       >
@@ -27,17 +27,17 @@ export default function SOSModal({ show, onClose }: SOSModalProps) {
           onClick={onClose}
           className="absolute top-[13px] right-[13px] w-[26px] h-[26px] rounded-full flex items-center justify-center text-[11px]"
           style={{
-            background:  'rgba(255,255,255,0.07)',
-            border:      '1px solid rgba(255,255,255,0.09)',
-            color:       'rgba(255,255,255,0.45)',
+            background:  'var(--surface-raised)',
+            border:      '1px solid var(--border-faint)',
+            color:       'var(--txt-3)',
           }}
         >
           ✕
         </button>
 
         <div className="text-[36px] mb-3">🆘</div>
-        <h3 className="text-[17px] font-bold text-white mb-2">Need urgent help?</h3>
-        <p className="text-[13px] mb-4 leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+        <h3 className="text-[17px] font-bold mb-2" style={{ color: 'var(--txt-1)' }}>Need urgent help?</h3>
+        <p className="text-[13px] mb-4 leading-relaxed" style={{ color: 'var(--txt-3)' }}>
           If you are in danger, being hurt, or feeling unsafe — reach out right now:
         </p>
 
@@ -50,20 +50,20 @@ export default function SOSModal({ show, onClose }: SOSModalProps) {
             key={item.title}
             className="rounded-lg px-3 py-[10px] mb-2"
             style={{
-              background:  'rgba(74,222,128,0.04)',
-              border:      '1px solid rgba(74,222,128,0.12)',
+              background:  'var(--surface-hover)',
+              border:      '1px solid var(--accent-dim)',
             }}
           >
-            <div className="font-bold text-[12.5px] mb-[2px]" style={{ color: '#4ade80' }}>
+            <div className="font-bold text-[12.5px] mb-[2px]" style={{ color: 'var(--accent)' }}>
               {item.title}
             </div>
-            <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.52)' }}>
+            <div className="text-[12px]" style={{ color: 'var(--txt-3)' }}>
               {item.info}
             </div>
           </div>
         ))}
 
-        <p className="text-[12px] text-center mt-2 italic" style={{ color: '#4ade80' }}>
+        <p className="text-[12px] text-center mt-2 italic" style={{ color: 'var(--accent)' }}>
           You are brave for seeking help. You deserve to be safe. 💚
         </p>
       </div>

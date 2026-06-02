@@ -16,3 +16,4 @@ export { default as InsightsPanel } from "./InsightPanel";
 // ui
 export { default as SOSModal } from "./SosModal";
 export { default as LogPeriodModal } from "./LogPeriodModal";
+export { default as ThemeToggle } from "./ThemeToggle";

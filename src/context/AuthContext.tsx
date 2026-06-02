@@ -9,7 +9,7 @@ import {
   ReactNode,
 } from 'react';
 import { authService }                         from '../services';
-import { connectFacilitator, disconnectSocket } from '../lib/socket';
+import { connectFacilitator, disconnectSocket, joinDMRoom } from '../lib/socket';
 import { User, RegisterBody, LoginBody, UpdateMeBody } from '../types';
 
 interface AuthContextValue {
@@ -20,7 +20,7 @@ interface AuthContextValue {
   isFacilitator: boolean;
 
   register:  (body: RegisterBody) => Promise<void>;
-  login:     (body: LoginBody)    => Promise<void>;
+  login:     (body: LoginBody)    => Promise<User>;
   logout:    ()                   => Promise<void>;
   updateMe:  (body: UpdateMeBody) => Promise<void>;
   clearError: ()                  => void;
@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .getMe()
       .then(({ user }) => {
         setUser(user);
+        joinDMRoom(user.id);
         if (user.role === 'facilitator') connectFacilitator();
       })
       .catch(() => setUser(null))   // no session = unauthenticated, that's fine
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { user } = await authService.register(body);
       setUser(user);
+      joinDMRoom(user.id);
       if (user.role === 'facilitator') connectFacilitator();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Registration failed. Please try again.');
@@ -57,12 +59,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = useCallback(async (body: LoginBody) => {
+  const login = useCallback(async (body: LoginBody): Promise<User> => {
     setError(null);
     try {
       const { user } = await authService.login(body);
       setUser(user);
+      joinDMRoom(user.id);
       if (user.role === 'facilitator') connectFacilitator();
+      return user;
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Login failed. Please check your credentials.');
       throw err;

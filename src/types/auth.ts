@@ -2,21 +2,27 @@
 // Mirrors backend: models/User.ts
 // ─────────────────────────────────────────────
 
-export type UserRole     = 'girl' | 'facilitator';
+export type UserRole     = 'girl' | 'facilitator' | 'admin';
 export type AgeGroupUser = '10-13' | '14-18' | null;
 export type Language     = 'en' | 'pidgin' | 'yoruba' | 'hausa';
 
 export interface User {
-  id:            string;
-  name:          string;
-  email:         string;
-  role:          UserRole;
-  ageGroup:      AgeGroupUser;
-  avatar:        string | null;
-  preferredLang: Language;
-  consentGiven:  boolean;
-  lastLoginAt:   string | null;
-  createdAt:     string;
+  id:               string;
+  name:             string;
+  email:            string;
+  role:             UserRole;
+  ageGroup:         AgeGroupUser;
+  avatar:           string | null;
+  preferredLang:    Language;
+  consentGiven:     boolean;
+  lastLoginAt:      string | null;
+  createdAt:        string;
+  savedTopics:      string[];
+  resourcesVisited: string[];
+  badges:           string[];
+  groupCode:        string | null;
+  facilitatorId:    string | null;
+  facilitatorName:  string | null;
 }
 
 // ─────────────────────────────────────────────
@@ -28,7 +34,8 @@ export interface RegisterBody {
   name:          string;
   email:         string;
   password:      string;
-  role?:         UserRole;
+  inviteToken?:  string;
+  groupCode?:    string;
   ageGroup?:     AgeGroupUser;
   consentGiven?: boolean;
 }

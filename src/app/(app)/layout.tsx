@@ -1,21 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Sidebar from "../../components/Sidebar";
-import Header from "../../components/Header";
+import { useState, useEffect } from "react";
+import { useRouter }            from "next/navigation";
+import Sidebar  from "../../components/Sidebar";
+import Header   from "../../components/Header";
 import SOSModal from "../../components/SosModal";
 import { useChat } from "../../hooks";
-
-// No auth guard — everyone lands here directly.
-// Registration is prompted softly inside the chat
-// after a few messages, not as a gate at entry.
+import { useAuth } from "../../hooks";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSOS, setShowSOS] = useState(false);
   const { sendMessage } = useChat();
+  const { user, loading } = useAuth();
   const router = useRouter();
+
+  // Redirect unauthenticated visitors to login
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [user, loading, router]);
 
   const handleChipClick = (text: string) => {
     router.push("/chat");
@@ -25,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="flex h-screen overflow-hidden"
-      style={{ background: "#09160d" }}
+      style={{ background: "var(--bg)" }}
     >
       <Sidebar
         collapsed={sidebarCollapsed}

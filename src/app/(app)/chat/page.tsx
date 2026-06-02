@@ -69,15 +69,15 @@ export default function ChatPage() {
         <div
           className="flex items-center justify-between gap-3 px-4 py-3 flex-shrink-0"
           style={{
-            background: "rgba(74,222,128,0.07)",
-            borderBottom: "1px solid rgba(74,222,128,0.14)",
+            background: "var(--surface-hover)",
+            borderBottom: "1px solid var(--border)",
           }}
         >
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[15px] shrink-0">💾</span>
             <span
               className="text-[12.5px] leading-snug"
-              style={{ color: "rgba(255,255,255,0.7)" }}
+              style={{ color: "var(--txt-2)" }}
             >
               Want to save this chat? Create a free account — takes 30 seconds.
             </span>
@@ -87,8 +87,8 @@ export default function ChatPage() {
               onClick={() => router.push("/register")}
               className="px-3 py-[5px] rounded-lg text-[12px] font-bold border-none"
               style={{
-                background: "linear-gradient(135deg,#4ade80,#16a34a)",
-                color: "#09160d",
+                background: "var(--accent-gradient)",
+                color: "#ffffff", // ✅ was "#09160d" — dark-mode bg hardcode; white works on both accent gradients
                 cursor: "pointer",
                 fontFamily: "DM Sans, sans-serif",
               }}
@@ -100,8 +100,8 @@ export default function ChatPage() {
               className="text-[11px] px-2 py-[5px] rounded-lg border"
               style={{
                 background: "transparent",
-                borderColor: "rgba(255,255,255,0.12)",
-                color: "rgba(255,255,255,0.35)",
+                borderColor: "var(--border)",        // ✅ was --border-faint — too invisible on warm light bg
+                color: "var(--txt-3)",               // ✅ was --txt-4 — too faint on light mode
                 cursor: "pointer",
                 fontFamily: "DM Sans, sans-serif",
               }}
@@ -146,9 +146,9 @@ export default function ChatPage() {
               <div
                 className="text-center text-[12.5px] px-4 py-2 rounded-lg mx-auto"
                 style={{
-                  background: "rgba(239,68,68,0.09)",
-                  border: "1px solid rgba(239,68,68,0.2)",
-                  color: "#fca5a5",
+                  background: "var(--danger-bg)",
+                  border: "1px solid var(--danger-border)",
+                  color: "var(--danger-txt)",
                 }}
               >
                 {error}

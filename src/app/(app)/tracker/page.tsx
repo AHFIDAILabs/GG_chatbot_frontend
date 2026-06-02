@@ -27,6 +27,7 @@ export default function TrackerPage() {
     symptomLogs,
     stats,
     calendar,
+    prediction,
     addPeriodLog,
     removePeriodLog,
     addSymptomLog,
@@ -43,9 +44,9 @@ export default function TrackerPage() {
     borderRadius: 8,
     fontSize: 12.5,
     cursor: "pointer",
-    border: `1px solid ${active ? "rgba(74,222,128,0.2)" : "rgba(255,255,255,0.07)"}`,
-    background: active ? "rgba(74,222,128,0.1)" : "rgba(255,255,255,0.04)",
-    color: active ? "#4ade80" : "rgba(255,255,255,0.45)",
+    border: `1px solid ${active ? "var(--border-strong)" : "var(--border-faint)"}`,
+    background: active ? "var(--surface-active)" : "var(--surface-input)",
+    color: active ? "var(--accent)" : "var(--txt-3)",
     fontFamily: "DM Sans, sans-serif",
     transition: "all 0.15s",
   });
@@ -53,12 +54,12 @@ export default function TrackerPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div style={pageInnerStyle}>
-        <div className="text-[20px] font-bold text-white mb-1">
+        <div className="text-[20px] font-bold mb-1" style={{ color: "var(--txt-1)" }}>
           Period Tracker
         </div>
         <div
           className="text-[12.5px] mb-4"
-          style={{ color: "rgba(255,255,255,0.35)" }}
+          style={{ color: "var(--txt-4)" }}
         >
           Track your cycle, moods, symptoms and insights
         </div>
@@ -68,8 +69,8 @@ export default function TrackerPage() {
           onClick={() => setShowLogModal(true)}
           className="block w-full py-[11px] rounded-[9px] font-bold text-[13.5px] mb-4 border-none transition-opacity hover:opacity-90"
           style={{
-            background: "linear-gradient(135deg,#4ade80,#16a34a)",
-            color: "#09160d",
+            background: "var(--accent-gradient)",
+            color: "#ffffff",
             fontFamily: "DM Sans, sans-serif",
             cursor: "pointer",
           }}
@@ -79,6 +80,36 @@ export default function TrackerPage() {
 
         {/* Stats */}
         <StatsRow stats={stats} />
+
+        {/* Backend cycle prediction card */}
+        {prediction && (
+          <div
+            className="rounded-[11px] p-4 mb-4"
+            style={{ background: 'var(--surface-hover)', border: '1px solid var(--border-input)' }}
+          >
+            <div className="text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--accent)' }}>
+              AI Cycle Prediction · based on {prediction.basedOnCycles} cycle{prediction.basedOnCycles !== 1 ? 's' : ''}
+            </div>
+            <div className="flex gap-4 flex-wrap">
+              <div>
+                <div className="text-[11px]" style={{ color: 'var(--txt-3)' }}>Next Period</div>
+                <div className="text-[14px] font-semibold" style={{ color: 'var(--txt-1)' }}>
+                  {new Date(prediction.nextStart).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  {' – '}
+                  {new Date(prediction.nextEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px]" style={{ color: 'var(--txt-3)' }}>Avg Cycle</div>
+                <div className="text-[14px] font-semibold" style={{ color: 'var(--accent)' }}>{prediction.avgCycleLength} days</div>
+              </div>
+              <div>
+                <div className="text-[11px]" style={{ color: 'var(--txt-3)' }}>Avg Duration</div>
+                <div className="text-[14px] font-semibold" style={{ color: 'var(--accent)' }}>{prediction.avgDuration} days</div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-2 mb-4 flex-wrap">
@@ -101,13 +132,13 @@ export default function TrackerPage() {
           <div
             className="rounded-[11px] p-4"
             style={{
-              background: "rgba(13,30,17,0.85)",
-              border: "1px solid rgba(74,222,128,0.1)",
+              background: "var(--surface-raised)",
+              border: "1px solid var(--border-faint)",
             }}
           >
             <div
               className="text-[9.5px] tracking-widest uppercase mb-3"
-              style={{ color: "rgba(255,255,255,0.3)" }}
+              style={{ color: "var(--txt-4)" }}
             >
               All Period Logs
             </div>
@@ -115,7 +146,7 @@ export default function TrackerPage() {
         {periodLogs.length === 0 ? (
   <div
     className="text-center py-5 text-[13px]"
-    style={{ color: "rgba(255,255,255,0.28)" }}
+    style={{ color: "var(--txt-4)" }}
   >
     No periods logged yet. Tap + Log Periods to start.
   </div>) : (
@@ -128,7 +159,7 @@ export default function TrackerPage() {
                   <div
                     key={log.id}
                     className="flex items-center justify-between py-[9px]"
-                    style={{ borderBottom: "1px solid rgba(74,222,128,0.07)" }}
+                    style={{ borderBottom: "1px solid var(--border-faint)" }}
                   >
                     <div className="flex items-center gap-[9px]">
                       <div
@@ -136,7 +167,7 @@ export default function TrackerPage() {
                         style={{ background: "#f87171" }}
                       />
                       <div>
-                        <div className="text-[13px] font-semibold text-white">
+                        <div className="text-[13px] font-semibold" style={{ color: "var(--txt-1)" }}>
                           {new Date(log.date).toLocaleDateString("en-GB", {
                             day: "numeric",
                             month: "short",
@@ -145,7 +176,7 @@ export default function TrackerPage() {
                         </div>
                         <div
                           className="text-[11px] mt-[1px]"
-                          style={{ color: "rgba(255,255,255,0.35)" }}
+                          style={{ color: "var(--txt-4)" }}
                         >
                           {log.flow} flow · {log.duration} days
                           {log.notes ? ` · ${log.notes}` : ""}
@@ -155,7 +186,7 @@ export default function TrackerPage() {
                     <div className="flex items-center gap-2">
                       <span
                         className="text-[12px] font-semibold"
-                        style={{ color: "#4ade80" }}
+                        style={{ color: "var(--accent)" }}
                       >
                         {log.duration}d
                       </span>

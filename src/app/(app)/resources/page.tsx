@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useChat }   from '../../../hooks';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter }                         from 'next/navigation';
+import { useChat }                           from '../../../hooks';
+import * as progressService                  from '../../../services/progressService';
 
 const PILLARS = [
   {
-    key:      'p1',
-    icon:     '🩸',
-    pillar:   'Pillar 1',
-    title:    'Period & Menstrual Hygiene',
-    desc:     'Your cycle, hygiene practices, emotional wellbeing and busting myths.',
-    count:    '6 topics · Ages 10–18',
+    key:    'p1',
+    icon:   '🩸',
+    pillar: 'Pillar 1',
+    title:  'Period & Menstrual Hygiene',
+    desc:   'Your cycle, hygiene practices, emotional wellbeing and busting myths.',
+    count:  '6 topics · Ages 10–18',
+    badge:  'badge_menstrual_hygiene',
     sessions: [
       'What is menstruation and why does it happen?',
       'Understanding your menstrual cycle',
@@ -22,12 +24,13 @@ const PILLARS = [
     ],
   },
   {
-    key:      'p2',
-    icon:     '🌿',
-    pillar:   'Pillar 2',
-    title:    'Environmental Sustainability',
-    desc:     'Climate change, recycling, waste management and eco projects.',
-    count:    '6 topics · Ages 10–18',
+    key:    'p2',
+    icon:   '🌿',
+    pillar: 'Pillar 2',
+    title:  'Environmental Sustainability',
+    desc:   'Climate change, recycling, waste management and eco projects.',
+    count:  '6 topics · Ages 10–18',
+    badge:  'badge_environment',
     sessions: [
       'What is climate change and how does it affect us?',
       'Recycling and waste reduction at home and school',
@@ -38,12 +41,13 @@ const PILLARS = [
     ],
   },
   {
-    key:      'p3',
-    icon:     '💻',
-    pillar:   'Pillar 3',
-    title:    'Digital & AI Skills',
-    desc:     'Internet safety, documents, AI literacy and digital rights.',
-    count:    '8 topics · Ages 10–18',
+    key:    'p3',
+    icon:   '💻',
+    pillar: 'Pillar 3',
+    title:  'Digital & AI Skills',
+    desc:   'Internet safety, documents, AI literacy and digital rights.',
+    count:  '8 topics · Ages 10–18',
+    badge:  'badge_digital_skills',
     sessions: [
       'Staying safe online — golden rules',
       'Understanding and avoiding cyberbullying',
@@ -56,12 +60,13 @@ const PILLARS = [
     ],
   },
   {
-    key:      'p4',
-    icon:     '💰',
-    pillar:   'Pillar 4',
-    title:    'Life Skills & Financial Literacy',
-    desc:     'Confidence, communication, saving, budgeting and entrepreneurship.',
-    count:    '8 topics · Ages 10–18',
+    key:    'p4',
+    icon:   '💰',
+    pillar: 'Pillar 4',
+    title:  'Life Skills & Financial Literacy',
+    desc:   'Confidence, communication, saving, budgeting and entrepreneurship.',
+    count:  '8 topics · Ages 10–18',
+    badge:  'badge_life_skills',
     sessions: [
       'Building self-confidence and self-esteem',
       'Communication and assertiveness skills',
@@ -75,75 +80,131 @@ const PILLARS = [
   },
 ];
 
+function topicId(pillarKey: string, session: string) {
+  return `${pillarKey}::${session.slice(0, 50)}`;
+}
+
 export default function ResourcesPage() {
   const [activePillar, setActivePillar] = useState<string | null>(null);
   const { sendMessage }                 = useChat();
   const router                          = useRouter();
 
-  const pillar = PILLARS.find(p => p.key === activePillar);
+  const [savedTopics,      setSavedTopics]      = useState<string[]>([]);
+  const [resourcesVisited, setResourcesVisited] = useState<string[]>([]);
+  const [badges,           setBadges]           = useState<string[]>([]);
 
-  const handleAsk = (session: string) => {
+  // Load progress on mount
+  useEffect(() => {
+    progressService.getProgress()
+      .then(p => {
+        setSavedTopics(p.savedTopics);
+        setResourcesVisited(p.resourcesVisited);
+        setBadges(p.badges);
+      })
+      .catch(() => null);
+  }, []);
+
+  const toggleBookmark = useCallback(async (tid: string) => {
+    const isBookmarked = savedTopics.includes(tid);
+    // Optimistic
+    setSavedTopics(prev => isBookmarked ? prev.filter(t => t !== tid) : [...prev, tid]);
+    try {
+      if (isBookmarked) await progressService.removeBookmark(tid);
+      else              await progressService.addBookmark(tid);
+    } catch {
+      setSavedTopics(prev => isBookmarked ? [...prev, tid] : prev.filter(t => t !== tid));
+    }
+  }, [savedTopics]);
+
+  const handleAsk = useCallback(async (pillarKey: string, session: string) => {
+    const tid = topicId(pillarKey, session);
+    // Mark visited
+    if (!resourcesVisited.includes(tid)) {
+      setResourcesVisited(prev => [...prev, tid]);
+      progressService.markVisited(tid)
+        .then(d => { if (d.badges) setBadges(d.badges as unknown as string[]); })
+        .catch(() => null);
+    }
     sendMessage(`Tell me about: ${session}`);
     router.push('/chat');
-  };
+  }, [resourcesVisited, sendMessage, router]);
 
-  const pageInnerStyle: React.CSSProperties = {
-    flex:      1,
-    overflowY: 'auto',
-    padding:   '24px 22px',
-  };
+  const pillar = PILLARS.find(p => p.key === activePillar);
 
-  const cardStyle: React.CSSProperties = {
-    background:   'rgba(13,30,17,0.8)',
-    border:       '1px solid rgba(74,222,128,0.1)',
-    borderRadius: 11,
-    padding:      18,
-    cursor:       'pointer',
-    transition:   'all 0.18s',
+  // Compute pillar completion %
+  const pillarProgress = (p: typeof PILLARS[0]) => {
+    const visited = p.sessions.filter(s => resourcesVisited.includes(topicId(p.key, s))).length;
+    return { visited, total: p.sessions.length, pct: Math.round((visited / p.sessions.length) * 100) };
   };
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div style={pageInnerStyle}>
+      <div className="flex-1 overflow-y-auto" style={{ padding: '24px 22px' }}>
 
         {!activePillar ? (
           <>
-            <div className="text-[20px] font-bold text-white mb-1">Learning Resources</div>
-            <div className="text-[12.5px] mb-6" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <div className="text-[20px] font-bold mb-1" style={{ color: 'var(--txt-1)' }}>Learning Resources</div>
+            <div className="text-[12.5px] mb-2" style={{ color: 'var(--txt-4)' }}>
               Explore all four pillars of the GGCL Academy curriculum
             </div>
 
-            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
-              {PILLARS.map(p => (
-                <div
-                  key={p.key}
-                  style={cardStyle}
-                  onClick={() => setActivePillar(p.key)}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(74,222,128,0.28)';
-                    (e.currentTarget as HTMLDivElement).style.transform   = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(74,222,128,0.1)';
-                    (e.currentTarget as HTMLDivElement).style.transform   = 'translateY(0)';
-                  }}
-                >
-                  <div className="text-[28px] mb-[10px]">{p.icon}</div>
-                  <div className="text-[9.5px] tracking-[1.5px] uppercase mb-1" style={{ color: '#4ade80' }}>
-                    {p.pillar}
-                  </div>
-                  <div className="text-[14px] font-bold text-white mb-1">{p.title}</div>
-                  <div className="text-[12px] leading-relaxed mb-3" style={{ color: 'rgba(255,255,255,0.42)' }}>
-                    {p.desc}
-                  </div>
-                  <div
-                    className="text-[10.5px] pt-[9px]"
-                    style={{ color: 'rgba(74,222,128,0.55)', borderTop: '1px solid rgba(74,222,128,0.09)' }}
+            {/* Badges row */}
+            {badges.length > 0 && (
+              <div className="flex gap-2 mb-4 flex-wrap">
+                {badges.map(b => (
+                  <span
+                    key={b}
+                    className="text-[11px] px-[9px] py-[3px] rounded-full"
+                    style={{ background: 'var(--accent-dim)', border: '1px solid rgba(74,222,128,0.25)', color: 'var(--accent)' }}
                   >
-                    {p.count}
+                    🏅 {b.replace('badge_', '').replace(/_/g, ' ')}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+              {PILLARS.map(p => {
+                const prog    = pillarProgress(p);
+                const earned  = badges.includes(p.badge);
+                return (
+                  <div
+                    key={p.key}
+                    onClick={() => setActivePillar(p.key)}
+                    className="rounded-[11px] p-[18px] cursor-pointer transition-all duration-150"
+                    style={{
+                      background:   'var(--surface-raised)',
+                      border:       `1px solid ${earned ? 'rgba(74,222,128,0.35)' : 'var(--border-faint)'}`,
+                      borderRadius: 11,
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = earned ? 'rgba(74,222,128,0.35)' : 'var(--border-faint)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; }}
+                  >
+                    <div className="flex items-center justify-between mb-[10px]">
+                      <span className="text-[28px]">{p.icon}</span>
+                      {earned && <span className="text-[16px]" title="Pillar complete!">🏅</span>}
+                    </div>
+                    <div className="text-[9.5px] tracking-[1.5px] uppercase mb-1" style={{ color: 'var(--accent)' }}>{p.pillar}</div>
+                    <div className="text-[14px] font-bold mb-1" style={{ color: 'var(--txt-1)' }}>{p.title}</div>
+                    <div className="text-[12px] leading-relaxed mb-3" style={{ color: 'var(--txt-3)' }}>{p.desc}</div>
+
+                    {/* Progress bar */}
+                    {prog.visited > 0 && (
+                      <div className="mb-2">
+                        <div className="flex justify-between text-[10px] mb-[3px]" style={{ color: 'var(--txt-4)' }}>
+                          <span>{prog.visited}/{prog.total} explored</span>
+                          <span>{prog.pct}%</span>
+                        </div>
+                        <div className="h-[3px] rounded-full overflow-hidden" style={{ background: 'var(--border-faint)' }}>
+                          <div className="h-full rounded-full" style={{ width: `${prog.pct}%`, background: 'var(--accent-gradient)' }} />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="text-[10.5px] pt-[9px]" style={{ color: 'rgba(74,222,128,0.55)', borderTop: '1px solid var(--border-faint)' }}>{p.count}</div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         ) : pillar ? (
@@ -152,37 +213,50 @@ export default function ResourcesPage() {
               <button
                 onClick={() => setActivePillar(null)}
                 className="px-3 py-[6px] rounded-[7px] text-[12.5px]"
-                style={{
-                  background:  'rgba(255,255,255,0.05)',
-                  border:      '1px solid rgba(255,255,255,0.09)',
-                  color:       'rgba(255,255,255,0.65)',
-                }}
+                style={{ background: 'var(--surface-input)', border: '1px solid var(--border-faint)', color: 'var(--txt-2)', cursor: 'pointer' }}
               >
                 ← Back
               </button>
-              <div className="text-[17px] font-bold text-white">{pillar.title}</div>
+              <div className="text-[17px] font-bold" style={{ color: 'var(--txt-1)' }}>{pillar.title}</div>
+              {badges.includes(pillar.badge) && <span className="text-[18px]" title="Pillar complete!">🏅</span>}
             </div>
 
-            {pillar.sessions.map(session => (
-              <div
-                key={session}
-                onClick={() => handleAsk(session)}
-                className="rounded-[10px] px-4 py-[13px] mb-2 cursor-pointer transition-all duration-150"
-                style={{
-                  background: 'rgba(13,30,17,0.8)',
-                  border:     '1px solid rgba(74,222,128,0.1)',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(74,222,128,0.28)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(74,222,128,0.1)';
-                }}
-              >
-                <div className="text-[13.5px] font-semibold text-white mb-1">{session}</div>
-                <div className="text-[11.5px]" style={{ color: '#4ade80' }}>Ask Amara about this →</div>
-              </div>
-            ))}
+            {pillar.sessions.map(session => {
+              const tid       = topicId(pillar.key, session);
+              const visited   = resourcesVisited.includes(tid);
+              const bookmarked = savedTopics.includes(tid);
+              return (
+                <div
+                  key={session}
+                  className="rounded-[10px] px-4 py-[13px] mb-2 transition-all duration-150"
+                  style={{ background: 'var(--surface-raised)', border: `1px solid ${visited ? 'var(--border-strong)' : 'var(--border-faint)'}` }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className="flex-1 cursor-pointer"
+                      onClick={() => handleAsk(pillar.key, session)}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {visited && <span className="text-[10px] text-green-400">✓</span>}
+                        <div className="text-[13.5px] font-semibold" style={{ color: 'var(--txt-1)' }}>{session}</div>
+                      </div>
+                      <div className="text-[11.5px]" style={{ color: 'var(--accent)' }}>Ask Amara about this →</div>
+                    </div>
+                    {/* Bookmark toggle */}
+                    <button
+                      onClick={e => { e.stopPropagation(); toggleBookmark(tid); }}
+                      title={bookmarked ? 'Remove bookmark' : 'Bookmark this topic'}
+                      className="shrink-0 text-[16px] transition-all duration-150 mt-[2px]"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: bookmarked ? 1 : 0.3 }}
+                      onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                      onMouseLeave={e => (e.currentTarget.style.opacity = bookmarked ? '1' : '0.3')}
+                    >
+                      {bookmarked ? '🔖' : '🔖'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </>
         ) : null}
       </div>
