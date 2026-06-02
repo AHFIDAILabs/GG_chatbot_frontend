@@ -9,7 +9,7 @@ interface PeriodLogsResponse {
 }
 
 // Normalise backend doc (_id, startDate) → local shape (id, date)
-function normalise(doc: Record<string, unknown>): PeriodLog {
+function normalise(doc: any): PeriodLog {
   return {
     id:       (doc._id ?? doc.id) as string,
     _id:      doc._id as string,
@@ -25,7 +25,7 @@ export async function fetchPeriodLogs(page = 1, limit = 12): Promise<PeriodLogsR
     `/tracker?page=${page}&limit=${limit}`,
   );
   const d = data.data;
-  return { ...d, logs: (d.logs as unknown[]).map(normalise) };
+  return { ...d, logs: (d.logs as any[]).map(normalise) };
 }
 
 export async function logPeriod(
